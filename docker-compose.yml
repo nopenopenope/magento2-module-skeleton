@@ -1,0 +1,59 @@
+version: '3.9'
+
+services:
+  php:
+    build:
+      context: .
+      dockerfile: ./docker/php/Dockerfile
+    volumes:
+      - ./src/:/var/www/html/
+      - ./docker/php/etc/install-magento.sh:/docker/scripts/install-magento
+    env_file:
+      - .env
+    networks:
+      - magento2
+    ports:
+      - 3500:80
+
+  database:
+    image: mariadb:10.6
+    environment:
+      MYSQL_ROOT_PASSWORD: magento2
+      MYSQL_DATABASE: magento2
+      MYSQL_USER: magento2
+      MYSQL_PASSWORD: magento2
+    ports:
+      - 8836:3306
+    networks:
+      - magento2
+
+  opensearch:
+    image: opensearchproject/opensearch:2.7.0
+    environment:
+      - discovery.type=single-node
+      - cluster.name=opensearch-cluster
+      - node.name=opensearch-node
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - DISABLE_SECURITY_PLUGIN=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "8892:9200"
+    volumes:
+      - opensearch:/usr/share/opensearch/data
+    networks:
+      - magento2
+
+networks:
+  magento2:
+    driver: bridge
+
+volumes:
+  opensearch:

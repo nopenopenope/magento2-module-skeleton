@@ -1,0 +1,6 @@
+.env
+src/*
+!src
+!.src/app/code/
+.idea/
+.github
