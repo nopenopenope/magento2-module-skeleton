@@ -13,7 +13,18 @@ services:
     networks:
       - magento2
     ports:
-      - 3500:80
+      - "3500:80"
+
+  npm:
+    build:
+      context: .
+      dockerfile: ./docker/npm/Dockerfile
+    volumes:
+      - ./src/:/var/www/html/
+    env_file:
+      - .env
+    networks:
+    - magento2
 
   database:
     image: mariadb:10.6
@@ -23,7 +34,7 @@ services:
       MYSQL_USER: magento2
       MYSQL_PASSWORD: magento2
     ports:
-      - 8836:3306
+      - "8836:3306"
     networks:
       - magento2
 

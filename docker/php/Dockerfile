@@ -42,24 +42,18 @@ RUN docker-php-ext-install sockets
 RUN pecl install xdebug \
     && docker-php-ext-enable xdebug
 
-# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-# Install Magenrun
 RUN wget --quiet https://files.magerun.net/n98-magerun2.phar \
 	&& chmod +x ./n98-magerun2.phar \
 	&& mv ./n98-magerun2.phar /usr/local/bin/
-
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get install -y nodejs
-RUN mkdir /var/www/.config /var/www/.npm && chown 1000:1000 /var/www/.config /var/www/.npm
-RUN npm install -g grunt-cli
-RUN npm install grunt
 
 RUN rm -rf /etc/apache2/sites-available/000-default.conf
 COPY ./docker/php/apache-config/magento.conf /etc/apache2/sites-available/000-default.conf
 COPY ./docker/php/apache-config/magento.conf /etc/apache2/sites-enabled/000-default.conf
 COPY ./docker/php/apache-config/ports.conf /etc/apache2/ports.conf
+
+RUN chown -R 1000:1000 /var/www
 
 RUN a2enmod rewrite \
     && a2enmod expires \
@@ -68,6 +62,8 @@ RUN a2enmod rewrite \
     && usermod -u 1000 www-data \
     && usermod -G staff www-data \
     && usermod -G www-data root
+
+RUN adduser www-data root
 
 COPY ./docker/php/etc/999-php-custom.ini     /usr/local/etc/php/conf.d/999-php-custom.ini
 COPY ./docker/php/etc/999-php-custom-cli.ini /usr/local/etc/php/php-cli.ini
@@ -80,6 +76,7 @@ RUN chmod +x /usr/local/bin/install-magento
 
 RUN mkdir -p $MAGENTO_ROOT/flags
 
+USER 1000:1000
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 WORKDIR $MAGENTO_ROOT
 CMD ["apache2-foreground"]
