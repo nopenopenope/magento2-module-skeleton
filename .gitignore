@@ -1,6 +1,7 @@
 .env
-src/*
 !src
 !.src/app/code/
+!.src/app/code/*
+src/*
 .idea/
 .github
