@@ -5,66 +5,50 @@ services:
     build:
       context: .
       dockerfile: ./docker/php/Dockerfile
-    volumes:
-      - ./src/:/var/www/html/
-      - ./docker/php/etc/install-magento.sh:/docker/scripts/install-magento
-    env_file:
-      - .env
-    networks:
-      - magento2
+      args:
+        PHP_VERSION: php:8.2-apache
+        MAGENTO_PUBLIC_KEY: ${MAGENTO_PUBLIC_KEY}
+        MAGENTO_SECRET_KEY: ${MAGENTO_SECRET_KEY}
     ports:
-      - "3500:80"
-
-  npm:
-    build:
-      context: .
-      dockerfile: ./docker/npm/Dockerfile
+      - "9999:80"
     volumes:
-      - ./src/:/var/www/html/
+      - ./src:/var/www/html/app/code/${VENDOR_NAME:-SEEC}/${MODULE_NAME:-MagentoTestModule}
+      - ./ecs.php:/var/www/html/ecs.php
+      - ./phpstan.neon:/var/www/html/phpstan.neon
+      - ./magento:/var/www/html/vendor/magento-ext
+      - ./docker/php/etc/generate-module-with-mage2gen.sh:/usr/local/bin/mage2gen-module-creator
+    environment:
+      PHP_IDE_CONFIG: serverName=magento2-behat-extension
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
       - .env
-    networks:
-    - magento2
 
-  database:
+  mysql:
     image: mariadb:10.6
     environment:
-      MYSQL_ROOT_PASSWORD: magento2
-      MYSQL_DATABASE: magento2
-      MYSQL_USER: magento2
-      MYSQL_PASSWORD: magento2
+      MYSQL_USER: magento
+      MYSQL_PASSWORD: magento
+      MYSQL_DATABASE: magento
+      MYSQL_ROOT_PASSWORD: magento
+    volumes:
+      - ./docker/data/database/:/var/lib/mysql/
     ports:
-      - "8836:3306"
-    networks:
-      - magento2
+      - "9906:3306"
 
   opensearch:
     image: opensearchproject/opensearch:2.7.0
     environment:
-      - discovery.type=single-node
-      - cluster.name=opensearch-cluster
-      - node.name=opensearch-node
-      - bootstrap.memory_lock=true
-      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
-      - DISABLE_INSTALL_DEMO_CONFIG=true
-      - DISABLE_SECURITY_PLUGIN=true
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
+      discovery.type: single-node
+      cluster.name: opensearch-cluster
+      node.name: opensearch-node
+      bootstrap.memory_lock: true
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+      DISABLE_INSTALL_DEMO_CONFIG: true
+      DISABLE_SECURITY_PLUGIN: true
     ports:
       - "8892:9200"
-    volumes:
-      - opensearch:/usr/share/opensearch/data
-    networks:
-      - magento2
-
-networks:
-  magento2:
-    driver: bridge
 
 volumes:
-  opensearch:
+  magento:
+

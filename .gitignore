@@ -1,7 +1,8 @@
-.env
-!src
-!.src/app/code/
-!.src/app/code/*
-src/*
 .idea/
 .github
+docker/data/*
+!docker/data
+.env
+src/*
+!src/
+magento

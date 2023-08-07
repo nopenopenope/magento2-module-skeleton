@@ -1,29 +1,32 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
-rm -rf /var/www/html/app/etc/env.php
+cd /var/www/html
 
-php bin/magento setup:install \
-  --base-url="http://www.magento-skeleton.test:3500/" \
-  --admin-email="developer@dev.test" \
-  --admin-firstname="Test" \
-  --admin-lastname="Test" \
-  --admin-password="test123!@#" \
-  --admin-user="admin" \
-  --backend-frontname="admin" \
-  --currency="EUR" \
-  --db-host="database" \
-  --db-name="magento2" \
-  --db-password="magento2" \
-  --db-prefix="" \
-  --db-user="magento2" \
-  --language="en_US" \
-  --opensearch-host="opensearch" \
-  --opensearch-port="9200" \
-  --timezone="Europe/Amsterdam" \
-  --use-rewrites="1" \
-  --use-sample-data \
-  --cleanup-database
-
-php bin/magento module:disable Magento_AdminAdobeImsTwoFactorAuth Magento_TwoFactorAuth
-php bin/magento deploy:mode:set developer
-
+rm -f app/etc/env.php
+mkdir -p pub/static pub/media
+$(which php) bin/magento setup:install \
+      --admin-email "magento@magento.com" \
+      --admin-firstname "admin" \
+      --admin-lastname "admin" \
+      --admin-password "admin123!#" \
+      --admin-user "admin" \
+      --backend-frontname admin \
+      --base-url "http://magento.test:9999" \
+      --db-host mysql \
+      --db-name magento \
+      --db-user root \
+      --db-password magento \
+      --session-save files \
+      --use-rewrites 1 \
+      --use-secure 0 \
+      --search-engine="opensearch" \
+      --opensearch-host="opensearch" \
+      --opensearch-port="9200" \
+      --timezone="Europe/Amsterdam" \
+      --skip-db-validation \
+      --cleanup-database \
+      -vvv
+$(which php) bin/magento deploy:mode:set developer
+composer dump-autoload
+$(which php) bin/magento setup:upgrade
+composer config minimum-stability dev
