@@ -6,3 +6,4 @@ docker/data/*
 src/*
 !src/
 magento
+!*/.gitignore
