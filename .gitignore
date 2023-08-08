@@ -3,7 +3,5 @@
 docker/data/*
 !docker/data
 .env
-src/*
-!src/
 magento
 !*/.gitignore
